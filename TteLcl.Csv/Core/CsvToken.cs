@@ -69,4 +69,15 @@ public readonly struct CsvToken
       };
   }
 
+  /// <inheritdoc/>
+  public override string ToString()
+  {
+    return TokenType switch { 
+      CsvTokenType.EndOfFile => "EOF",
+      CsvTokenType.EndOfLine => "EOLN",
+      CsvTokenType.Field => $"Field: '{_fieldValue}'",
+      _ => $"INVALID TOKEN TYPE '{TokenType}'"
+    };
+  }
+
 }
