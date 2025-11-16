@@ -4,9 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using TteLcl.Csv.Core;
-
-namespace TteLcl.Csv;
+namespace TteLcl.Csv.Core;
 
 /// <summary>
 /// The states of the CSV parser
@@ -69,6 +67,7 @@ internal enum CsvParseState
 internal class CsvParseStateMachine
 {
   private readonly StringBuilder _fieldBuilder;
+  private bool _currentFieldIsQuoted;
 
   public CsvParseStateMachine(char separator = ',')
   {
@@ -135,6 +134,7 @@ internal class CsvParseStateMachine
         return CsvParseToken.EndOfLine();
       case QUOTE:
         State = CsvParseState.QuotedField;
+        _currentFieldIsQuoted = true;
         return CsvParseToken.None;
       default:
         if(ch == Separator)
@@ -145,6 +145,7 @@ internal class CsvParseStateMachine
         else
         {
           State = CsvParseState.PlainField;
+          _currentFieldIsQuoted = false;
           return Store(ch);
         }
     }
@@ -213,6 +214,7 @@ internal class CsvParseStateMachine
         return CsvParseToken.EndOfLine("");
       case QUOTE:
         State = CsvParseState.QuotedField;
+        _currentFieldIsQuoted = true;
         return CsvParseToken.None;
       default:
         if(ch == Separator)
@@ -223,6 +225,7 @@ internal class CsvParseStateMachine
         else
         {
           State = CsvParseState.PlainField;
+          _currentFieldIsQuoted = false;
           return Store(ch);
         }
     }
@@ -315,6 +318,11 @@ internal class CsvParseStateMachine
   {
     var field = _fieldBuilder.ToString();
     _fieldBuilder.Clear();
+    if(!_currentFieldIsQuoted)
+    {
+      field = field.Trim();
+    }
+    _currentFieldIsQuoted = false;
     return field;
   }
 
