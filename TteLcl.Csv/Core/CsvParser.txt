@@ -1,0 +1,93 @@
+﻿CSV Parser state machine
+
+Syntax notes:
+    "STATE <state>:
+        <input> -> <new state>; <<emission>>, <action>"
+
+    Inputs:
+        @EOF == Endo Of File (represented by a NUL character, '\0')
+        @CR  == Carriage Return ('\r'). Optional
+        @LF  == Line Feed ('\n'). (interpreted as the actual end of line)
+        @SEP == whatever character is configured as separator. Typically ','
+        @QUOTE == '"'
+        any == everything not explicitly handled earlier
+    Emissions: (the return value of the parser state function)
+        <>   == Emit the "nothing to see here" value
+        <line>  == Detected an end of line without a new field. (i.e. an empty line)
+        <field + line> == Detected an end of line that terminated a field
+        <end> == end of file
+        <field + end> == end of line that terminated a field and a line
+        <field> == end of a not-end-of-line field
+    Actions:
+        !store  == store the input character (append it to the field buffer)
+        !store('"')  == store the literal character
+        !clear  == clear the field buffer (goes together with <field> action)
+
+State STARTLINE:  # Entry state. Start of a line.
+    @EOF -> DONE; <end>
+    @CR -> EXPECTLF1; <>
+    @LF -> STARTLINE; <line>
+    @SEP -> NEXTFIELD; <field("")>
+    @QUOTE -> QUOTEDFIELD; <>
+    any -> PLAINFIELD; <>, !store
+
+State DONE:
+    any -> ERR
+
+State EXPECTLF1: # A line feed right after the start of a line
+    @CR -> EXPECTLF1; <>  # Multiple CarriageReturns?? Allow / ignore
+    @LF -> STARTLINE; <line>
+    @EOF -> DONE; <end> # Not expected, but allow
+    any -> ERR; throw # Expecting CR after LF, not lone LFs
+
+State EXPECTLF2: # A line feed after at least one bit of content
+    @CR -> EXPECTLF2; <>  # Multiple CarriageReturns?? Allow / ignore
+    @LF -> STARTLINE; <field+line>
+    @EOF -> DONE; <field+end>; !clear # Not expected, but allow
+    any -> ERR; throw # Expecting CR after LF, not lone LFs
+
+State ERR:
+    any -> ERR
+
+State NEXTFIELD:
+    @EOF -> DONE; <"" + end>
+    @CR -> EXPECTLF2; <>
+    @LF -> STARTLINE; <"" + line>
+    @SEP -> NEXTFIELD; <"">  # another empty field
+    @QUOTE -> QUOTEDFIELD; <>
+    any -> PLAINFIELD; <>, !store
+
+State QUOTEDFIELD:
+    @EOF -> ERR; throw  # EOF inside a quoted field
+    @QUOTE -> QUOTEQUOTE; <>
+    any (including CR, LF, SEP) -> QUOTEDFIELD; <>, !store
+
+State QUOTEQUOTE:
+    @EOF -> DONE; <field + end>, !clear
+    @CR -> EXPECTLF2; <>
+    @LF -> STARTLINE; <field + line>, !clear
+    @SEP -> NEXTFIELD; <field>, !clear
+    @QUOTE -> QUOTEDFIELD; <>, !store('"')  # That was an escaped " character
+    any -> ERR; throw  # Expecting EOF, CR, LF, separator or '"' only, nothing else
+
+State PLAINFIELD:
+    @EOF -> DONE; <field + end>, !clear
+    @CR -> EXPECTLF2; <>
+    @LF -> STARTLINE; <field + line>, !clear
+    @SEP -> NEXTFIELD; <field>, !clear
+    @QUOTE -> ERR; err # field requires quoting
+    any -> PLAINFIELD; <>, !store
+
+
+
+
+
+
+
+
+
+
+
+
+
+.
