@@ -51,19 +51,19 @@ public readonly struct CsvParseToken
     new CsvParseToken(CsvParseTokenType.EndOfLineField, value);
 
   /// <summary>
+  /// Create a new <see cref="CsvParseToken"/> with type <see cref="CsvParseTokenType.EndOfLine"/>
+  /// </summary>
+  /// <returns></returns>
+  public static CsvParseToken EndOfLine() =>
+    new CsvParseToken(CsvParseTokenType.EndOfLine);
+
+  /// <summary>
   /// Create a new <see cref="CsvParseToken"/> with type <see cref="CsvParseTokenType.EndOfFileField"/>
   /// </summary>
   /// <param name="value"></param>
   /// <returns></returns>
   public static CsvParseToken EndOfFile(string value) =>
     new CsvParseToken(CsvParseTokenType.EndOfFileField, value);
-
-  /// <summary>
-  /// Create a new <see cref="CsvParseToken"/> with type <see cref="CsvParseTokenType.EndOfLine"/>
-  /// </summary>
-  /// <returns></returns>
-  public static CsvParseToken EndOfLine() =>
-    new CsvParseToken(CsvParseTokenType.EndOfLine);
 
   /// <summary>
   /// Create a new <see cref="CsvParseToken"/> with type <see cref="CsvParseTokenType.EndOfFile"/>

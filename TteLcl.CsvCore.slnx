@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Apps/">
+    <Project Path="csvtestbench/csvtestbench.fsproj" Id="a4b4db06-2122-4476-874f-7af9ad57de38" />
+  </Folder>
   <Folder Name="/Libraries/">
     <Project Path="TteLcl.Csv/TteLcl.Csv.csproj" Id="24b0e9ed-aa61-402f-ad3d-97bbd2cb287f" />
   </Folder>

@@ -145,6 +145,29 @@ public class CsvStreamParser: IDisposable
     } while (token.TokenType != CsvTokenType.EndOfFile);
   }
 
+  /// <summary>
+  /// Report raw tokens
+  /// </summary>
+  /// <param name="noneTokens">
+  /// If true, also report <see cref="CsvParseTokenType.None"/> "tokens". Not recommended,
+  /// since that will result in a token for <i>every input character</i>.
+  /// </param>
+  /// <returns>
+  /// A sequence of low level <see cref="CsvParseToken"/> tokens.
+  /// </returns>
+  public IEnumerable<CsvParseToken> EnumerateAsRawTokenStream(bool noneTokens = false)
+  {
+    CsvParseToken token;
+    do
+    {
+      token = NextRawToken();
+      if(noneTokens || token.Kind != CsvParseTokenType.None)
+      { 
+        yield return token;
+      }
+    } while(!token.HasEof);
+  }
+
   private CsvParseToken NextRawToken()
   {
     CsvParseToken rawToken;
@@ -156,7 +179,7 @@ public class CsvStreamParser: IDisposable
       }
       char character;
       var ch = BaseReader.Read();
-      if(ch == 0)
+      if(ch < 0)
       {
         character = '\0';
         _baseEof = true;
