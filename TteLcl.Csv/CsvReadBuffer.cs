@@ -91,7 +91,9 @@ public class CsvReadBuffer: IReadOnlyList<string>
   /// </param>
   /// <param name="exactLength">
   /// If positive: the exact expected field count for each line, throwing an exception
-  /// if different
+  /// if different.
+  /// If negative: all lines must have the same field count as the first line
+  /// If 0: no field count restrictions.
   /// </param>
   /// <param name="skipEmpty">
   /// If true (default): ignore empty lines
@@ -108,8 +110,13 @@ public class CsvReadBuffer: IReadOnlyList<string>
       {
         if(exactLength > 0 && Count != exactLength)
         {
+          var sample = String.Join(",", _fieldBuffer.Take(5));
           throw new InvalidOperationException(
-            $"Expecting exactly {exactLength} fields per line, but received {Count}");
+            $"Expecting exactly {exactLength} fields per line, but received {Count}. Line starting with {sample}");
+        }
+        if(exactLength < 0)
+        {
+          exactLength = Count;
         }
         yield return this;
       }
@@ -127,7 +134,9 @@ public class CsvReadBuffer: IReadOnlyList<string>
   /// </param>
   /// <param name="exactLength">
   /// If positive: the exact expected field count for each line, throwing an exception
-  /// if different
+  /// if different.
+  /// If negative: all lines must have the same field count as the first line
+  /// If 0: no field count restrictions.
   /// </param>
   /// <param name="skipEmpty">
   /// If true (default): ignore empty lines
@@ -138,14 +147,20 @@ public class CsvReadBuffer: IReadOnlyList<string>
     int exactLength = 0,
     bool skipEmpty = true)
   {
+
     while(FillLine(source))
     {
       if(!skipEmpty || Count > 0)
       {
         if(exactLength > 0 && Count != exactLength)
         {
+          var sample = String.Join(",", _fieldBuffer.Take(5));
           throw new InvalidOperationException(
-            $"Expecting exactly {exactLength} fields per line, but received {Count}");
+            $"Expecting exactly {exactLength} fields per line, but received {Count}. Line starting with {sample}");
+        }
+        if(exactLength < 0)
+        {
+          exactLength = Count;
         }
         yield return this;
       }

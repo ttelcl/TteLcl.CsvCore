@@ -70,6 +70,8 @@ let run args =
     | "-n" :: count :: rest ->
       let exactCount = count |> Int32.Parse
       rest |> parseMore {o with ExactFieldCount = exactCount}
+    | "-same" :: rest ->
+      rest |> parseMore {o with ExactFieldCount = -1}
     | "-sep" :: ch :: rest ->
       if ch.Length <> 1 then
         cp "\frError: \foexpecting a single character as argument to \fg-sep\f0."
