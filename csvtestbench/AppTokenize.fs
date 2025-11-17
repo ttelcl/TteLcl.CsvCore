@@ -17,10 +17,16 @@ type private Options = {
   LineMode: bool
   IncludeEmptyLines: bool
   ExactFieldCount: int
+  EchoFile: string
 }
 
 let private runTokenize o =
   use streamParser = new CsvStreamParser(o.InputFile, o.Separator)
+  use echo =
+    if o.EchoFile |> String.IsNullOrEmpty |> not then
+      new CsvWriter(o.EchoFile, o.Separator)
+    else
+      null
   if o.LineMode then
     let buffer = new CsvReadBuffer()
     let skipLines = o.IncludeEmptyLines |> not
@@ -34,6 +40,8 @@ let private runTokenize o =
       for field in line do
         cpx $"\fo[\fg{field}\fo]\f0"
       cp "\f0<"
+      if echo <> null then
+        echo.WriteLine(line)
     0
   else
     if o.RawMode then
@@ -41,12 +49,20 @@ let private runTokenize o =
         cpx $"\fc{t.Kind,-18}\f0"
         if t.HasValue then
           cpx $"  '\fg{t.Value}\f0'"
+          if echo <> null then
+            echo.WriteField(t.Value)
+        if t.HasEoln && echo <> null then
+          echo.WriteLine()
         cp ""
     else
       for t in streamParser.EnumerateAsTokenStream() do
         cpx $"\fc{t.TokenType,-10}\f0"
         if t.TokenType = CsvTokenType.Field then
           cpx $"  '\fg{t.FieldValue}\f0'"
+          if echo <> null then
+            echo.WriteField(t.FieldValue)
+        elif t.TokenType = CsvTokenType.EndOfLine && echo <> null then
+          echo.WriteLine()
         cp ""
     0
 
@@ -61,6 +77,8 @@ let run args =
       None
     | "-i" :: file :: rest ->
       rest |> parseMore {o with InputFile = file}
+    | "-echo" :: file :: rest ->
+      rest |> parseMore {o with EchoFile = file}
     | "-raw" :: rest ->
       rest |> parseMore {o with RawMode = true}
     | "-lines" :: rest ->
@@ -94,6 +112,7 @@ let run args =
     LineMode = false
     IncludeEmptyLines = false
     ExactFieldCount = 0
+    EchoFile = null
   }
   match oo with
   | Some(o) ->

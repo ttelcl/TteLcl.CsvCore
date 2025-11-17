@@ -218,12 +218,9 @@ public class CsvStreamParser: IDisposable, ITokenSource<CsvToken>, ITokenSource<
     if(!_disposedValue)
     {
       _disposedValue=true;
-      if(disposing)
+      if(disposing && !LeaveOpen)
       {
-        if(!LeaveOpen)
-        {
-          BaseReader.Dispose();
-        }
+        BaseReader.Dispose();
       }
     }
   }
