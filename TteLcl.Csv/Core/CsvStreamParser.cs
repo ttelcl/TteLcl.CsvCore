@@ -17,7 +17,8 @@ public class CsvStreamParser: IDisposable
 {
   private readonly CsvParseStateMachine _stateMachine;
   private bool _disposedValue;
-  private CsvToken? _pendingToken;
+  private bool _eolnPending;
+  private bool _eofPending;
   private bool _baseEof;
 
   /// <summary>
@@ -79,16 +80,26 @@ public class CsvStreamParser: IDisposable
   public char Separator => _stateMachine.Separator;
 
   /// <summary>
+  /// The number of fields reported for the current line so far
+  /// </summary>
+  public int FieldsThisLine { get; private set; }
+
+  /// <summary>
   /// Retrieve the next <see cref="CsvToken"/>
   /// </summary>
   /// <returns></returns>
   public CsvToken NextToken()
   {
-    if(_pendingToken.HasValue)
+    if(_eolnPending)
     {
-      var ret = _pendingToken.Value;
-      _pendingToken = null;
-      return ret;
+      _eolnPending = false;
+      FieldsThisLine = 0;
+      return CsvToken.EndOfLine();
+    }
+    if(_eofPending)
+    {
+      // Do NOT set _eofPending to false, lock it to true instead
+      return CsvToken.EndOfFile();
     }
     var rawToken = NextRawToken();
     switch(rawToken.Kind)
@@ -97,21 +108,41 @@ public class CsvStreamParser: IDisposable
         throw new InvalidOperationException(
           "Internal error - NextRawToken returned None");
       case CsvParseTokenType.IntermediateField:
+        FieldsThisLine++;
         return CsvToken.Field(rawToken.Value);
       case CsvParseTokenType.EndOfLineField:
-        _pendingToken = CsvToken.EndOfLine();
+        FieldsThisLine++;
+        _eolnPending = true;
         return CsvToken.Field(rawToken.Value);
       case CsvParseTokenType.EndOfFileField:
-        _pendingToken = CsvToken.EndOfFile();
+        FieldsThisLine++;
+        _eolnPending = true;
+        _eofPending = true;
         return CsvToken.Field(rawToken.Value);
       case CsvParseTokenType.EndOfLine:
         return CsvToken.EndOfLine();
       case CsvParseTokenType.EndOfFile:
+        _eofPending = true;
         return CsvToken.EndOfFile();
       default:
         throw new InvalidOperationException(
           $"Internal error: unknown token type {rawToken.Kind}");
     }
+  }
+
+  /// <summary>
+  /// Report the content of this Csv Stream as a sequence of <see cref="CsvToken"/>s, starting
+  /// from the next token (not from the start of the stream)
+  /// </summary>
+  /// <returns></returns>
+  public IEnumerable<CsvToken> EnumerateAsTokenStream()
+  {
+    CsvToken token;
+    do
+    { 
+      token = NextToken();
+      yield return token;
+    } while (token.TokenType != CsvTokenType.EndOfFile);
   }
 
   private CsvParseToken NextRawToken()

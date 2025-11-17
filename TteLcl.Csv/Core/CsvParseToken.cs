@@ -92,6 +92,27 @@ public readonly struct CsvParseToken
   /// </summary>
   public CsvParseTokenType Kind { get; }
 
+  /// <summary>
+  /// True if there is a field value included in this token
+  /// </summary>
+  public bool HasValue =>
+    Kind switch {
+      CsvParseTokenType.None or
+      CsvParseTokenType.EndOfLine or
+      CsvParseTokenType.EndOfFile => false,
+      _ => _value != null, // expected to be true, but err on the safe side
+    };
+
+  /// <summary>
+  /// True if there is an End of Line. Note! This will be false if there is an End of File,
+  /// even there logically should have been an End of Line first.
+  /// </summary>
+  public bool HasEoln => Kind == CsvParseTokenType.EndOfLine || Kind == CsvParseTokenType.EndOfLineField;
+
+  /// <summary>
+  /// True if there is an End of File.
+  /// </summary>
+  public bool HasEof => Kind == CsvParseTokenType.EndOfFile || Kind == CsvParseTokenType.EndOfFileField;
 }
 
 /// <summary>
