@@ -13,7 +13,7 @@ namespace TteLcl.Csv.Core;
 /// and surfaced, this object does not construct records (CSV lines), it just
 /// returns a sequence of CSV fields and line break markers.
 /// </summary>
-public class CsvStreamParser: IDisposable
+public class CsvStreamParser: IDisposable, ITokenSource<CsvToken>, ITokenSource<CsvParseToken>
 {
   private readonly CsvParseStateMachine _stateMachine;
   private bool _disposedValue;
@@ -130,6 +130,21 @@ public class CsvStreamParser: IDisposable
     }
   }
 
+  CsvParseToken ITokenSource<CsvParseToken>.NextToken()
+  {
+    return NextRawToken();
+  }
+
+  /// <summary>
+  /// This parser viewed as a <see cref="ITokenSource{CsvToken}"/>
+  /// </summary>
+  public ITokenSource<CsvToken> PlainTokenSource => this;
+
+  /// <summary>
+  /// This parser viewed as a <see cref="ITokenSource{CsvParseToken}"/>
+  /// </summary>
+  public ITokenSource<CsvParseToken> ParseTokenSource => this;
+
   /// <summary>
   /// Report the content of this Csv Stream as a sequence of <see cref="CsvToken"/>s, starting
   /// from the next token (not from the start of the stream)
@@ -148,27 +163,29 @@ public class CsvStreamParser: IDisposable
   /// <summary>
   /// Report raw tokens
   /// </summary>
-  /// <param name="noneTokens">
-  /// If true, also report <see cref="CsvParseTokenType.None"/> "tokens". Not recommended,
-  /// since that will result in a token for <i>every input character</i>.
-  /// </param>
   /// <returns>
   /// A sequence of low level <see cref="CsvParseToken"/> tokens.
   /// </returns>
-  public IEnumerable<CsvParseToken> EnumerateAsRawTokenStream(bool noneTokens = false)
+  public IEnumerable<CsvParseToken> EnumerateAsRawTokenStream()
   {
     CsvParseToken token;
     do
     {
       token = NextRawToken();
-      if(noneTokens || token.Kind != CsvParseTokenType.None)
+      if(token.Kind != CsvParseTokenType.None)
       { 
         yield return token;
       }
     } while(!token.HasEof);
   }
 
-  private CsvParseToken NextRawToken()
+  /// <summary>
+  /// Return the next Raw Token (<see cref="CsvParseToken"/>). 
+  /// Raw tokens represent CSV parts differently, possibly
+  /// combining a field and an end of line or end of file marker.
+  /// </summary>
+  /// <returns></returns>
+  public CsvParseToken NextRawToken()
   {
     CsvParseToken rawToken;
     do
