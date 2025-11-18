@@ -27,10 +27,74 @@ public class CsvReadBuffer: IReadOnlyList<string>
   }
 
   /// <inheritdoc/>
-  public string this[int index] => ((IReadOnlyList<string>)_fieldBuffer)[index];
+  public string this[int index] => _fieldBuffer[index];
+
+  /// <summary>
+  /// Get the value for the given <see cref="ColumnIndex"/>. Optionally this allows
+  /// 'ghost' indexes, returning an empty string for columns with the special index
+  /// <see cref="ColumnName.GhostIndex"/> (-2).
+  /// </summary>
+  /// <param name="index">
+  /// The <see cref="ColumnIndex"/> instance
+  /// </param>
+  /// <param name="allowGhost">
+  /// Default true. If true, the special index <see cref="ColumnName.GhostIndex"/>
+  /// results in an empty string being returned instead of throwing a
+  /// <see cref="KeyNotFoundException"/>.
+  /// </param>
+  /// <returns></returns>
+  /// <exception cref="KeyNotFoundException">
+  /// </exception>
+  public string this[ColumnIndex index, bool allowGhost = true] {
+    get {
+      if(index.Index >= 0 && index.Index < _fieldBuffer.Count)
+      {
+        return _fieldBuffer[index.Index];
+      }
+      if(allowGhost && index.Index == ColumnName.GhostIndex)
+      {
+        return String.Empty;
+      }
+      if(index.Index < 0)
+      {
+        throw new KeyNotFoundException(
+          $"Column '{index.Name}' is not bound (index {index.Index}).");
+      }
+      throw new KeyNotFoundException(
+        $"Column '{index.Name}' (index {index.Index}) is out of range. Valid indexes are below {_fieldBuffer.Count}");
+    }
+  }
+
+  /// <summary>
+  /// Get the column value for the given <see cref="ColumnName"/> <paramref name="cn"/>.
+  /// If not bound yet, the column name is bound to the current <see cref="Header"/> (which
+  /// will fail if there is no header captured yet using <see cref="CaptureHeader(bool)"/>).
+  /// </summary>
+  /// <param name="cn">
+  /// The column to look up (and potentially bind)
+  /// </param>
+  /// <param name="mustExist">
+  /// If false, missing columns are converted to ghost columns instead of causing an exception. 
+  /// </param>
+  /// <returns></returns>
+  /// <exception cref="InvalidOperationException"></exception>
+  public string this[ColumnName cn, bool mustExist = false] {
+    get {
+      if(!cn.IsDefined)
+      {
+        if(Header == null)
+        {
+          throw new InvalidOperationException(
+            $"Cannot auto-bind column name '{cn.Name}' to a column index because no header line has been captured yet (missing call to CaptureHeader)");
+        }
+        cn.Bind(Header, mustExist);
+      }
+      return this[cn.AsColumnIndex, true];
+    }
+  }
 
   /// <inheritdoc/>
-  public int Count => ((IReadOnlyCollection<string>)_fieldBuffer).Count;
+  public int Count => _fieldBuffer.Count;
 
   /// <inheritdoc/>
   public IEnumerator<string> GetEnumerator()
@@ -42,6 +106,29 @@ public class CsvReadBuffer: IReadOnlyList<string>
   IEnumerator IEnumerable.GetEnumerator()
   {
     return GetEnumerator();
+  }
+
+  /// <summary>
+  /// The currently active header (mapping column names to column indexes and vice versa),
+  /// or null if not yet captured). Use <see cref="CaptureHeader(bool)"/> to use the currently
+  /// loaded line as header.
+  /// </summary>
+  public ColumnMapper? Header { get; private set; }
+
+  /// <summary>
+  /// Use the currently loaded line as table header, setting the <see cref="Header"/> property.
+  /// If necessary, column names may be modified to ensure that all column names are unique.
+  /// If <see cref="HasFullLine"/> is not true, clear the header instead.
+  /// </summary>
+  /// <param name="caseSensitive"></param>
+  public void CaptureHeader(bool caseSensitive)
+  {
+    if(!HasFullLine)
+    {
+      Header = null;
+      return;
+    }
+    Header = new ColumnMapper(caseSensitive, _fieldBuffer);
   }
 
   /// <summary>
