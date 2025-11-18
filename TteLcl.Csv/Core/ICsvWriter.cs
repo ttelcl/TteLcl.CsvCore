@@ -59,6 +59,26 @@ public static class CsvWriterExtensions
     w.WriteFields(fields);
     w.WriteLine();
   }
+
+  /// <summary>
+  /// Write the values loaded into <paramref name="buffer"/> as a new line.
+  /// </summary>
+  /// <param name="w"></param>
+  /// <param name="buffer"></param>
+  public static void WriteRow(this ICsvWriter w, CsvWriteRow buffer)
+  {
+    buffer.WriteValuesTo(w);
+  }
+
+  /// <summary>
+  /// Write the column names in the <paramref name="buffer"/> as a new line.
+  /// </summary>
+  /// <param name="w"></param>
+  /// <param name="buffer"></param>
+  public static void WriteHeader(this ICsvWriter w, CsvWriteRow buffer)
+  {
+    buffer.WriteNamesTo(w);
+  }
 }
 
 
