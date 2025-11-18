@@ -65,7 +65,6 @@ public class CsvReaderBase
   /// True if column names should be treated as case sensitive
   /// </summary>
   public bool ColumnNamesAreCaseSensitive { get; }
-
   
   /// <summary>
   /// If true, missing columns are bound as ghost columns (always returning "").
@@ -97,6 +96,30 @@ public class CsvReaderBase
   public string this[ColumnName cn] => Get(cn);
 
   /// <summary>
+  /// Create a new single column accessor for the specified <see cref="ColumnName"/> instance
+  /// </summary>
+  public CsvColumnReader GetColumn(ColumnName cn)
+  {
+    return new CsvColumnReader(this, cn);
+  }
+
+  /// <summary>
+  /// Create a new single column accessor for the specified column name
+  /// </summary>
+  public CsvColumnReader GetColumn(string columnName)
+  {
+    return new CsvColumnReader(this, new ColumnName(columnName, ColumnName.UndefinedIndex));
+  }
+
+  /// <summary>
+  /// Create a new single column accessor for the specified anonymous column at the specified index
+  /// </summary>
+  public CsvColumnReader GetColumn(int index)
+  {
+    return new CsvColumnReader(this, new ColumnName("", index));
+  }
+
+  /// <summary>
   /// Get the name of a column by index
   /// </summary>
   /// <param name="index">
@@ -105,7 +128,7 @@ public class CsvReaderBase
   /// <returns></returns>
   /// <exception cref="InvalidOperationException"></exception>
   /// <exception cref="KeyNotFoundException"></exception>
-  public string ColumnName(int index)
+  public string GetColumnName(int index)
   {
     var header = _buffer.Header ?? throw new InvalidOperationException("No file header loaded");
     if(!header.TryFind(index, out var ci))
