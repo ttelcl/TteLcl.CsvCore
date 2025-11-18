@@ -14,12 +14,12 @@ namespace TteLcl.Csv.Core;
 /// to a <see cref="TextWriter"/> or file. Also exposes static helper methods to encode or
 /// quote fields, useful for other implementations of this interface.
 /// </summary>
-public class CsvWriter: ICsvWriter
+public class CsvRawWriter: ICsvWriter
 {
   private bool _disposed;
 
   /// <summary>
-  /// Create a new <see cref="CsvWriter"/> instance
+  /// Create a new <see cref="CsvRawWriter"/> instance
   /// </summary>
   /// <param name="baseWriter">
   /// The underlying text writer to write to
@@ -28,10 +28,10 @@ public class CsvWriter: ICsvWriter
   /// The CSV separator character to use (default: ',')
   /// </param>
   /// <param name="leaveOpen">
-  /// If true, disposing this <see cref="CsvWriter"/> does NOT dispose
+  /// If true, disposing this <see cref="CsvRawWriter"/> does NOT dispose
   /// <paramref name="baseWriter"/>. If false (default), it does.
   /// </param>
-  public CsvWriter(
+  public CsvRawWriter(
     TextWriter baseWriter,
     char separator = ',',
     bool leaveOpen = false)
@@ -47,7 +47,7 @@ public class CsvWriter: ICsvWriter
   }
 
   /// <summary>
-  /// Create a new <see cref="CsvWriter"/> instance for writing to the specified file
+  /// Create a new <see cref="CsvRawWriter"/> instance for writing to the specified file
   /// (creating the file if necessary)
   /// </summary>
   /// <param name="filename">
@@ -56,7 +56,7 @@ public class CsvWriter: ICsvWriter
   /// <param name="separator">
   /// The CSV separator character to use (default ',')
   /// </param>
-  public CsvWriter(
+  public CsvRawWriter(
     string filename,
     char separator = ',')
     : this(File.CreateText(filename), separator)
@@ -69,7 +69,7 @@ public class CsvWriter: ICsvWriter
   public TextWriter BaseWriter { get; }
 
   /// <summary>
-  /// If true, disposing this <see cref="CsvWriter"/> does not
+  /// If true, disposing this <see cref="CsvRawWriter"/> does not
   /// dispose <see cref="BaseWriter"/>
   /// </summary>
   public bool LeaveOpen { get; }

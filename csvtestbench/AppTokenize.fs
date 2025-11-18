@@ -24,7 +24,7 @@ let private runTokenize o =
   use streamParser = new CsvStreamParser(o.InputFile, o.Separator)
   use echo =
     if o.EchoFile |> String.IsNullOrEmpty |> not then
-      new CsvWriter(o.EchoFile, o.Separator)
+      new CsvRawWriter(o.EchoFile, o.Separator)
     else
       null
   if o.LineMode then
