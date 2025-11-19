@@ -98,25 +98,25 @@ public class CsvReaderBase
   /// <summary>
   /// Create a new single column accessor for the specified <see cref="ColumnName"/> instance
   /// </summary>
-  public CsvColumnReader GetColumn(ColumnName cn)
+  public CsvReadCell GetColumn(ColumnName cn)
   {
-    return new CsvColumnReader(this, cn);
+    return new CsvReadCell(this, cn);
   }
 
   /// <summary>
   /// Create a new single column accessor for the specified column name
   /// </summary>
-  public CsvColumnReader GetColumn(string columnName)
+  public CsvReadCell GetColumn(string columnName)
   {
-    return new CsvColumnReader(this, new ColumnName(columnName, ColumnName.UndefinedIndex));
+    return new CsvReadCell(this, new ColumnName(columnName, ColumnName.UndefinedIndex));
   }
 
   /// <summary>
   /// Create a new single column accessor for the specified anonymous column at the specified index
   /// </summary>
-  public CsvColumnReader GetColumn(int index)
+  public CsvReadCell GetColumn(int index)
   {
-    return new CsvColumnReader(this, new ColumnName("", index));
+    return new CsvReadCell(this, new ColumnName("", index));
   }
 
   /// <summary>

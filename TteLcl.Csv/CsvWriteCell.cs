@@ -9,10 +9,15 @@ namespace TteLcl.Csv;
 /// <summary>
 /// A writer buffer for a single column in a single row
 /// </summary>
-public class CsvWriteCell
+public class CsvWriteCell: IStringGetter
 {
   private string? _value;
 
+  /// <summary>
+  /// Constructor. Invoked publicly via <see cref="CsvWriteRowBuilder.AddCell(string)"/>
+  /// </summary>
+  /// <param name="name"></param>
+  /// <param name="index"></param>
   internal CsvWriteCell(
     string name,
     int index)
@@ -30,6 +35,11 @@ public class CsvWriteCell
   /// The index in the column
   /// </summary>
   public int Index { get; }
+
+  /// <summary>
+  /// This cell's <see cref="ColumnIndex"/>.
+  /// </summary>
+  public ColumnIndex ColIndex => new ColumnIndex(Name, Index);
 
   /// <summary>
   /// Get the current value, throwing an exception if no value has been assigned

@@ -9,7 +9,7 @@ namespace TteLcl.Csv;
 /// <summary>
 /// An object that can read a string value from somewhere
 /// </summary>
-public interface IStringValue
+public interface IStringGetter
 {
   /// <summary>
   /// Read the current value
