@@ -9,7 +9,7 @@
         <Company>TteLcl</Company>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/ttelcl/TteLcl.CsvCore</RepositoryUrl>
-        <VersionPrefix>0.1.0</VersionPrefix>
+        <VersionPrefix>0.1.1</VersionPrefix>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     </PropertyGroup>
